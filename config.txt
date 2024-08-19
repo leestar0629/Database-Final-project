@@ -1,0 +1,6 @@
+﻿<?
+    $host = "localhost";
+    $dbid = "db2021170866";                    // 자신의 DB ID
+    $dbpass = "yale901@naver.com";                  // 자신의 DB Password
+    $dbname = "db2021170866";                  // 해당 프로젝트에서 사용하는 DB명
+?>

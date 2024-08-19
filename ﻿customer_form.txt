@@ -1,0 +1,71 @@
+﻿<?
+include "header.php";
+include "config.php";    //데이터베이스 연결 설정파일
+include "util.php";      //유틸 함수
+
+$conn = dbconnect($host, $dbid, $dbpass, $dbname);
+$mode = "입력";
+$action = "customer_insert.php";
+
+if (array_key_exists("customer_id", $_GET)) {
+    $customer_id = $_GET["customer_id"];
+    $query = "SELECT * FROM customer WHERE customer_id = $customer_id";
+    $result = mysqli_query($conn, $query);
+    $customer = mysqli_fetch_array($result);
+
+    if (!$customer) {
+        msg("고객이 존재하지 않습니다.");
+    } else {
+        $mode = "수정";
+        $action = "customer_modify.php";
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>고객 정보 수정</title>
+    <script>
+        function validateForm() {
+            var name = document.forms["customer_form"]["customer_name"].value;
+            var phone = document.forms["customer_form"]["phone_number"].value;
+            if (name === "") {
+                alert("고객 이름을 입력해 주십시오.");
+                return false;
+            }
+            if (phone === "") {
+                alert("전화번호를 입력해 주십시오.");
+                return false;
+            }
+            return true;
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <form name="customer_form" action="<?=$action?>" method="post" onsubmit="return validateForm()">
+            <h3>고객 정보 <?=$mode?></h3>
+            <input type="hidden" name="customer_id" value="<?=$customer['customer_id']?>"/> <!-- 중요: 고객 ID를 숨김 필드로 추가 -->
+            <p>
+                <label for="customer_name">고객 이름:</label>
+                <input type="text" id="customer_name" name="customer_name" value="<?=$customer['customer_name']?>" placeholder="고객 이름 입력"/>
+            </p>
+            <p>
+                <label for="phone_number">전화번호:</label>
+                <input type="text" id="phone_number" name="phone_number" value="<?=$customer['phone_number']?>" placeholder="전화번호 입력"/>
+            </p>
+            <p>
+                <label for="address">주소:</label>
+                <input type="text" id="address" name="address" value="<?=$customer['address']?>" placeholder="주소 입력 (선택사항)"/>
+            </p>
+            <p align="center">
+                <button type="submit" class="button primary large"><?=$mode?></button>
+            </p>
+        </form>
+    </div>
+</body>
+</html>
+
+
+

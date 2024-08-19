@@ -1,0 +1,61 @@
+<?php
+include "config.php";    // 데이터베이스 연결 설정파일
+include "util.php";      // 유틸 함수
+
+$conn = dbconnect($host, $dbid, $dbpass, $dbname);
+
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    $order_id = $_GET['order_id'];
+    $orderQuery = mysqli_query($conn, "SELECT * FROM product WHERE order_id = '$order_id'");
+    $order = mysqli_fetch_assoc($orderQuery);
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>주문 수정</title>
+    <script>
+        function validateForm() {
+            var quantity = document.forms["modify_form"]["quantity"].value;
+
+            if (!quantity || quantity <= 0) {
+                alert("유효한 수량을 입력하세요.");
+                return false;
+            }
+            return true;
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h3>주문 수정</h3>
+        <form name="modify_form" action="order_modify_process.php" method="post" onsubmit="return validateForm()">
+            <input type="hidden" name="order_id" value="<?php echo $order_id; ?>" />
+            <p>
+                <label for="product_name">품목:</label>
+                <select name="product_name" id="product_name" required>
+                    <option value="A" <?php if ($order['product_name'] == 'A') echo 'selected'; ?>>A</option>
+                    <option value="B" <?php if ($order['product_name'] == 'B') echo 'selected'; ?>>B</option>
+                    <option value="C" <?php if ($order['product_name'] == 'C') echo 'selected'; ?>>C</option>
+                </select>
+            </p>
+            <p>
+                <label for="quantity">수량:</label>
+                <input type="number" id="quantity" name="quantity" value="<?php echo $order['quantity']; ?>" required>
+            </p>
+            <p>
+                <label for="process_method">공정 방식:</label>
+                <select name="process_method" id="process_method" required>
+                    <option value="D" <?php if ($order['process_method'] == 'D') echo 'selected'; ?>>D</option>
+                    <option value="E" <?php if ($order['process_method'] == 'E') echo 'selected'; ?>>E</option>
+                    <option value="F" <?php if ($order['process_method'] == 'F') echo 'selected'; ?>>F</option>
+                </select>
+            </p>
+            <p align="center">
+                <button type="submit" class="button primary large">수정하기</button>
+            </p>
+           
+        </form>
+    </div>
+</body>
+</html>

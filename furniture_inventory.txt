@@ -1,0 +1,36 @@
+<?
+include "header.php";
+include "config.php";    //데이터베이스 연결 설정파일
+include "util.php";      //유틸 함수
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>가구 재고 현황</title>
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+    <div class="container">
+        <h2>가구 재고 현황</h2>
+        <?
+        $conn = dbconnect($host, $dbid, $dbpass, $dbname);
+        $query = "SELECT furniture_type, stock FROM inventory ORDER BY furniture_type ASC";
+        $result = mysqli_query($conn, $query);
+        if (!$result) {
+            die('Query Error : ' . mysqli_error($conn));
+        }
+        
+        echo "<table class='table table-striped table-bordered'>";
+        echo "<tr><th>가구 종류</th><th>재고 개수</th></tr>";
+        while ($row = mysqli_fetch_array($result)) {
+            echo "<tr>";
+            echo "<td>{$row['furniture_type']}</td>";
+            echo "<td>{$row['stock']}</td>";
+            echo "</tr>";
+        }
+        echo "</table>";
+        ?>
+    </div>
+</body>
+</html>

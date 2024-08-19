@@ -1,0 +1,28 @@
+﻿<?
+include "config.php";    //데이터베이스 연결 설정파일
+include "util.php";      //유틸 함수
+
+$conn = dbconnect($host,$dbid,$dbpass,$dbname);
+
+$customer_id = $_GET['customer_id'];  // 고객 ID 받기
+mysqli_begin_transaction($conn);  // 트랜잭션 시작
+
+try {
+    // 고객 정보 삭제 쿼리 실행
+    $delete_customer = mysqli_query($conn, "DELETE FROM customer WHERE customer_id = $customer_id");
+
+    if(!$delete_customer) {
+        throw new Exception('Query Error : ' . mysqli_error($conn));  // 쿼리 실행 실패 시 예외 발생
+    }
+
+    mysqli_commit($conn);  // 쿼리 성공 시 커밋
+    s_msg('성공적으로 삭제 되었습니다');  // 성공 메시지
+    echo "<meta http-equiv='refresh' content='0;url=customer_list.php'>";  // 고객 목록 페이지로 리디렉션
+} catch (Exception $e) {
+    mysqli_rollback($conn);  // 예외 발생 시 롤백
+    msg($e->getMessage());  // 오류 메시지 출력
+    echo "<meta http-equiv='refresh' content='0;url=customer_list.php'>";  // 에러 후 고객 목록 페이지로 리디렉션
+}
+
+?>
+

@@ -1,0 +1,44 @@
+<?php
+include "config.php";    // 데이터베이스 연결 설정파일
+include "util.php";      // 유틸 함수
+
+$conn = dbconnect($host, $dbid, $dbpass, $dbname);
+
+$order_id = $_GET['order_id'];  // 주문 ID 받기
+mysqli_begin_transaction($conn);  // 트랜잭션 시작
+
+try {
+    // 주문에 연결된 상품 정보를 가져와서 재고를 복원합니다.
+    $productQuery = mysqli_query($conn, "SELECT * FROM product WHERE order_id = $order_id");
+    while ($product = mysqli_fetch_assoc($productQuery)) {
+        $product_name = $product['product_name'];
+        $quantity = $product['quantity'];
+        
+        // 재고를 복원합니다.
+        $restoreInventory = mysqli_query($conn, "UPDATE inventory SET stock = stock + $quantity WHERE furniture_type = '$product_name'");
+        if (!$restoreInventory) {
+            throw new Exception('재고 복원 실패: ' . mysqli_error($conn));  // 재고 복원 실패 시 예외 발생
+        }
+    }
+
+    // 관련 상품 정보 삭제 (예: 주문과 연결된 상품)
+    $delete_products = mysqli_query($conn, "DELETE FROM product WHERE order_id = $order_id");
+    if (!$delete_products) {
+        throw new Exception('상품 삭제 실패: ' . mysqli_error($conn));  // 상품 삭제 실패 시 예외 발생
+    }
+
+    // 주문 정보 삭제
+    $delete_order = mysqli_query($conn, "DELETE FROM orderlist WHERE order_id = $order_id");
+    if (!$delete_order) {
+        throw new Exception('주문 삭제 실패: ' . mysqli_error($conn));  // 주문 삭제 실패 시 예외 발생
+    }
+
+    mysqli_commit($conn);  // 모든 삭제 쿼리 성공 시 커밋
+    s_msg('주문이 성공적으로 삭제되었습니다');  // 성공 메시지
+    echo "<meta http-equiv='refresh' content='0;url=order_list.php'>";  // 주문 목록 페이지로 리디렉션
+} catch (Exception $e) {
+    mysqli_rollback($conn);  // 예외 발생 시 롤백
+    msg($e->getMessage());  // 오류 메시지 출력
+    echo "<meta http-equiv='refresh' content='0;url=order_list.php'>";  // 에러 후 주문 목록 페이지로 리디렉션
+}
+?>

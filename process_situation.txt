@@ -1,0 +1,37 @@
+<?php
+include "header.php";
+include "config.php";    //데이터베이스 연결 설정파일
+include "util.php";      //유틸 함수
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>공정 현황 조회</title>
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+    <div class="container">
+        <h2>공정 현황</h2>
+        <?php
+        $conn = dbconnect($host, $dbid, $dbpass, $dbname);
+        $query = "SELECT DISTINCT process_method, is_available FROM process ORDER BY process_method ASC";
+        $result = mysqli_query($conn, $query);
+        if (!$result) {
+            die('Query Error : ' . mysqli_error($conn));
+        }
+        
+        echo "<table class='table table-striped table-bordered'>";
+        echo "<tr><th>공정 방식</th><th>가능 여부</th></tr>";
+        while ($row = mysqli_fetch_array($result)) {
+            $availability = $row['is_available'] == 'Y' ? '가능' : '불가능';
+            echo "<tr>";
+            echo "<td>{$row['process_method']}</td>";
+            echo "<td>{$availability}</td>";
+            echo "</tr>";
+        }
+        echo "</table>";
+        ?>
+    </div>
+</body>
+</html>

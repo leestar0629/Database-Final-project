@@ -1,0 +1,99 @@
+<?php
+include "config.php";    // 데이터베이스 연결 설정파일
+include "util.php";      // 유틸 함수
+
+$conn = dbconnect($host, $dbid, $dbpass, $dbname);
+
+// 트랜잭션 시작
+mysqli_begin_transaction($conn);
+
+try {
+    $customerID = $_POST['customer_id'];
+    $deliveryAddress = $_POST['delivery_address'];
+    $productType = $_POST['product_type'];
+    $quantity = $_POST['quantity'];
+    $processMethod = $_POST['process_method'];
+
+    // 현재 시간을 SQL 형식에 맞게 가져오기
+    $orderDate = date('Y-m-d H:i:s');
+
+    // 고객 존재 여부 확인
+    $customerCheck = mysqli_query($conn, "SELECT * FROM customer WHERE customer_id = '$customerID'");
+    if (mysqli_num_rows($customerCheck) == 0) {
+        throw new Exception("고객이 존재하지 않습니다.");
+    }
+
+    // 재고 확인
+    $inventoryCheck = mysqli_query($conn, "SELECT inventory_id, stock FROM inventory WHERE furniture_type = '$productType'");
+    $inventoryRow = mysqli_fetch_assoc($inventoryCheck);
+    if ($quantity > $inventoryRow['stock']) {
+        throw new Exception("요청한 수량이 재고보다 많습니다.");
+    }
+    $inventoryID = $inventoryRow['inventory_id']; // inventory_id 값 가져오기
+
+    // 공정 가능 여부 확인
+    $processCheck = mysqli_query($conn, "SELECT is_available FROM process WHERE process_method = '$processMethod'");
+    $processRow = mysqli_fetch_assoc($processCheck);
+    if ($processRow === null) {
+        throw new Exception("선택한 공정 방식이 존재하지 않습니다.");
+    } elseif ($processRow['is_available'] != 'Y') {
+        throw new Exception("현재 선택한 공정 방식은 사용할 수 없습니다.");
+    }
+
+    // 주문 추가
+    $insertOrder = "INSERT INTO orderlist (customer_id, order_date, delivery_address) VALUES ('$customerID', '$orderDate', '$deliveryAddress')";
+    if (!mysqli_query($conn, $insertOrder)) {
+        throw new Exception("주문 추가 실패: " . mysqli_error($conn));
+    }
+
+    $orderID = mysqli_insert_id($conn); // 새로 추가된 주문의 ID
+
+    // 상품 추가
+    $insertProduct = "INSERT INTO product (order_id, product_name, quantity, inventory_id) VALUES ('$orderID', '$productType', '$quantity', '$inventoryID')";
+    if (!mysqli_query($conn, $insertProduct)) {
+        throw new Exception("상품 추가 실패: " . mysqli_error($conn));
+    }
+
+    $productID = mysqli_insert_id($conn); // 새로 추가된 상품의 ID
+
+    // 재고 감소
+    $updateInventory = "UPDATE inventory SET stock = stock - '$quantity' WHERE inventory_id = '$inventoryID'";
+    if (!mysqli_query($conn, $updateInventory)) {
+        throw new Exception("재고 업데이트 실패: " . mysqli_error($conn));
+    }
+
+    // 직원 랜덤 배치
+    $randomEmployeeQuery = "SELECT employee_id FROM employee WHERE order_id IS NULL ORDER BY RAND() LIMIT 1";
+    $randomEmployeeResult = mysqli_query($conn, $randomEmployeeQuery);
+    if (!$randomEmployeeResult) {
+        throw new Exception("랜덤 직원 선택 실패: " . mysqli_error($conn));
+    }
+    $randomEmployeeRow = mysqli_fetch_assoc($randomEmployeeResult);
+    $employeeID = $randomEmployeeRow['employee_id'];
+
+    $assignEmployee = "UPDATE employee SET order_id = '$orderID' WHERE employee_id = '$employeeID'";
+    if (!mysqli_query($conn, $assignEmployee)) {
+        throw new Exception("직원 배치 실패: " . mysqli_error($conn));
+    }
+
+    // 배송 정보 추가
+    $insertDelivery = "INSERT INTO delivery (order_id, delivery_company, delivery_status) VALUES ('$orderID', '한진해운', '주문 수락')";
+    if (!mysqli_query($conn, $insertDelivery)) {
+        throw new Exception("배송 정보 추가 실패: " . mysqli_error($conn));
+    }
+
+    // 공정 정보 추가
+    $insertProcess = "INSERT INTO process (process_method, is_available, product_id) VALUES ('$processMethod', 'Y', '$productID')";
+    if (!mysqli_query($conn, $insertProcess)) {
+        throw new Exception("공정 정보 추가 실패: " . mysqli_error($conn));
+    }
+
+    // 모든 작업이 성공하면 커밋
+    mysqli_commit($conn);
+     echo "<script>alert('주문이 성공적으로 추가되었습니다.'); location.replace('order_form.php');</script>";
+} catch (Exception $e) {
+    mysqli_rollback($conn); // 에러 발생 시 롤백
+    echo "주문 추가 중 오류 발생: " . $e->getMessage();
+}
+?>
+

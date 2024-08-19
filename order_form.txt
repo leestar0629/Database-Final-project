@@ -1,0 +1,69 @@
+<?php
+include "header.php";
+include "config.php";    // 데이터베이스 연결 설정파일
+include "util.php";      // 유틸 함수
+
+$conn = dbconnect($host, $dbid, $dbpass, $dbname);
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>새 주문 추가</title>
+    <script>
+        function validateForm() {
+            var customerID = document.forms["order_form"]["customer_id"].value;
+            var deliveryAddress = document.forms["order_form"]["delivery_address"].value;
+            var productType = document.forms["order_form"]["product_type"].value;
+            var quantity = document.forms["order_form"]["quantity"].value;
+            var processMethod = document.forms["order_form"]["process_method"].value;
+
+            if (!customerID || !deliveryAddress || !productType || !quantity || !processMethod) {
+                alert("모든 필드를 채워주세요.");
+                return false;
+            }
+            return true;
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h3>새 주문 추가</h3>
+        <form name="order_form" action="order_insert.php" method="post" onsubmit="return validateForm()">
+            <p>
+                <label for="customer_id">고객 ID:</label>
+                <input type="text" id="customer_id" name="customer_id" placeholder="고객 ID 입력" required>
+            </p>
+            <p>
+                <label for="delivery_address">배송지 주소:</label>
+                <input type="text" id="delivery_address" name="delivery_address" placeholder="배송지 주소 입력" required>
+            </p>
+            <p>
+                <label for="product_type">제품 종류 (A, B, C):</label>
+                <select name="product_type" id="product_type" required>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                </select>
+            </p>
+            <p>
+                <label for="quantity">수량:</label>
+                <input type="number" id="quantity" name="quantity" placeholder="수량" required>
+            </p>
+            <p>
+                <label for="process_method">공정 방식 (D, E, F):</label>
+                <select name="process_method" id="process_method" required>
+                    <option value="D">D</option>
+                    <option value="E">E</option>
+                    <option value="F">F</option>
+                </select>
+            </p>
+            <p align="center">
+                <button type="submit" class="button primary large">주문 추가</button>
+            </p>
+        </form>
+    </div>
+</body>
+</html>
+
+

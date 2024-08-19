@@ -1,0 +1,30 @@
+<?
+include "header.php";
+include "config.php";    // 데이터베이스 연결 설정파일
+include "util.php";      // 유틸 함수
+
+$conn = dbconnect($host, $dbid, $dbpass, $dbname);
+
+if (isset($_GET['order_id'])) {
+    $order_id = $_GET['order_id'];
+
+    $query = "SELECT * FROM employee WHERE order_id = $order_id";
+    $result = mysqli_query($conn, $query);
+    $employee = mysqli_fetch_assoc($result);
+
+    if (!$employee) {
+        msg("해당 주문에 배정된 직원 정보가 존재하지 않습니다.");
+        return;
+    }
+?>
+    <div class="container">
+        <h2>직원 상세 정보</h2>
+        <p><strong>직원 ID:</strong> <?= $employee['employee_id'] ?></p>
+        <p><strong>이름:</strong> <?= $employee['employee_name'] ?></p>
+        <p><strong>전화번호:</strong> <?= $employee['phone_number'] ?></p>
+    </div>
+<?php
+} else {
+    msg("잘못된 접근입니다.");
+}
+?>

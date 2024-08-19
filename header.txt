@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang='ko'>
+<head>
+    <title>Kfurniture</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<form action="product_list.php" method="post">
+    <div class='navbar fixed'>
+        <div class='container'>
+            <a class='pull-left title' href="index.php">K-Mall</a>
+            <ul class='pull-right'>
+                <li><a href='customer_list.php'>고객 조회</a></li>
+                <li><a href='customer_form.php'>고객 생성</a></li>
+                <li><a href='order_form.php'>상품 구입</a></li>
+                <li><a href='order_list.php'>상품 구입 목록</a></li>
+                <li><a href='delivery_situation.php'>상품 배송 현황</a></li>
+                <li><a href='furniture_inventory.php'>상품 재고 현황</a></li>
+                <li><a href='process_situation.php'>공정 가능여부 현황</a></li>
+            </ul>
+        </div>
+    </div>
+</form>
